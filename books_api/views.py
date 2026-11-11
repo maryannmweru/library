@@ -145,7 +145,7 @@ class BorrowedBookReturnView(APIView):
                     status=status.HTTP_409_CONFLICT,
                 )
 
-            book = Book.objects.select_for_update().get(pk=borrowed_book.book_id)
+            Book.objects.select_for_update().get(pk=borrowed_book.book_id)
             borrowed_book.returned_at = timezone.now()
             borrowed_book.save(update_fields=['returned_at'])
 

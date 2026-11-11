@@ -1,0 +1,12 @@
+[run]
+branch = True
+source = books_api
+omit =
+    */migrations/*
+    */tests.py
+    */admin.py
+    */apps.py
+
+[report]
+fail_under = 90
+show_missing = True

@@ -220,8 +220,19 @@ python manage.py migrate
 
 ## Tests
 
-Run the API test suite with:
+Install the development tools:
 
 ```bash
-python manage.py test books_api
+python -m pip install -r requirements-dev.txt
 ```
+
+Run the same checks locally that GitHub Actions runs:
+
+```bash
+ruff check .
+python manage.py check
+coverage run manage.py test books_api
+coverage report
+```
+
+Coverage.py measures branch coverage for application code and enforces a 90% minimum. Generated migrations, tests, and Django boilerplate are excluded. The GitHub Actions workflow runs these checks on pushes and pull requests.

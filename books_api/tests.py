@@ -64,6 +64,15 @@ class BookApiTests(APITestCase):
 		self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 		self.assertFalse(Book.objects.filter(pk=book_id).exists())
 
+	def test_delete_author_without_books(self):
+		author = Author.objects.create(name='Unused Author', biography='Author bio.')
+		author_detail_url = f'{self.author_list_url}{author.id}/'
+
+		response = self.client.delete(author_detail_url)
+
+		self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+		self.assertFalse(Author.objects.filter(pk=author.id).exists())
+
 	def test_create_author_book_and_borrowed_book_through_api(self):
 		author_response = self.client.post(
 			self.author_list_url,
@@ -139,6 +148,13 @@ class BookApiTests(APITestCase):
 			format='json',
 		)
 		self.assertEqual(borrowed_update_response.status_code, status.HTTP_200_OK)
+		other_book = self.create_book('A Different Book')
+		change_book_response = self.client.patch(
+			borrowed_detail_url,
+			{'book': other_book.id},
+			format='json',
+		)
+		self.assertEqual(change_book_response.status_code, status.HTTP_400_BAD_REQUEST)
 
 		borrowed_delete_response = self.client.delete(borrowed_detail_url)
 		self.assertEqual(borrowed_delete_response.status_code, status.HTTP_409_CONFLICT)
@@ -151,8 +167,10 @@ class BookApiTests(APITestCase):
 		self.assertTrue(book_after_return.data['is_available'])
 		self.assertEqual(self.client.get(self.borrowed_book_list_url).data, [])
 		available_books = self.client.get(self.available_url)
-		self.assertEqual(available_books.data['count'], 1)
-		self.assertEqual(available_books.data['results'][0]['id'], book_response.data['id'])
+		self.assertEqual(
+			{book['id'] for book in available_books.data['results']},
+			{book_response.data['id'], other_book.id},
+		)
 
 		second_return_response = self.client.post(f'{borrowed_detail_url}return/')
 		self.assertEqual(second_return_response.status_code, status.HTTP_409_CONFLICT)
@@ -184,6 +202,18 @@ class BookApiTests(APITestCase):
 			[book['id'] for book in response.data['results']],
 			[alpha.id, zulu.id],
 		)
+
+	def test_invalid_sort_field_uses_default_order(self):
+		self.create_book('First Book')
+		self.create_book('Second Book')
+
+		response = self.client.get(self.list_url, {'ordering': 'unknown_field'})
+		expected_ids = list(
+			Book.objects.order_by('-created_at', 'id').values_list('id', flat=True)
+		)
+
+		self.assertEqual(response.status_code, status.HTTP_200_OK)
+		self.assertEqual([book['id'] for book in response.data['results']], expected_ids)
 
 	def test_list_paginates_five_books_per_page(self):
 		for number in range(7):

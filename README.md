@@ -235,4 +235,4 @@ coverage run manage.py test books_api
 coverage report
 ```
 
-Coverage.py measures branch coverage for application code and enforces a 90% minimum. Generated migrations, tests, and Django boilerplate are excluded. The GitHub Actions workflow runs these checks on pushes and pull requests.
+Coverage.py measures branch coverage for application code and enforces 100% statement and branch coverage. Generated migrations, tests, and Django boilerplate are excluded. The GitHub Actions workflow runs these checks on pushes and pull requests.

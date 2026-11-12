@@ -112,6 +112,32 @@ python manage.py runserver
 
 The API is available at `http://127.0.0.1:8000/api/`.
 
+## Run with Docker Compose
+
+Docker Compose starts the Django app and PostgreSQL as separate containers. The PostgreSQL data is stored in the named `postgres_data` volume, so it remains after the containers stop or are recreated.
+
+Copy the example environment file and change `PGPASSWORD` to a local development password:
+
+```bash
+cp .env.example .env
+```
+
+Start the services from the project root:
+
+```bash
+docker compose up --build
+```
+
+If Docker is being accessed from the VS Code Flatpak terminal, run the command through the host:
+
+```bash
+flatpak-spawn --host docker compose up --build
+```
+
+The app applies migrations when its container starts and is available at `http://127.0.0.1:8000/api/`. PostgreSQL is available from the host on port `5433` by default; inside Compose, Django connects to the `db` service on port `5432`.
+
+Stop the containers with `docker compose down`. This keeps the database volume. To permanently delete the database data as well, use `docker compose down --volumes`.
+
 ## API Endpoints
 
 | Resource | Method | Endpoint | Purpose |
